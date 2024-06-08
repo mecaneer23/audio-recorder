@@ -10,4 +10,3 @@ A sample MDN Web Docs app that uses `getUserMedia` and the MediaRecorder API for
 
 - feat: call navigator.mediaDevices.getUserMedia({ audio: true }) for each recording so mic isn't always on
 - feat: add github corner
-- feat: make record/stop button larger

@@ -10,7 +10,11 @@ canvas {
 }
 
 .button {
-    margin: 10vh;
+    margin: 2vh;
+    padding: 5vh;
+    font-size: x-large;
+    border: none;
+    border-radius: 2vh;
 }
 
 audio {

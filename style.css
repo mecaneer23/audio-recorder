@@ -18,6 +18,7 @@ canvas {
     font-size: x-large;
     border: none;
     border-radius: 2vh;
+    background-color: white;
 }
 
 audio {

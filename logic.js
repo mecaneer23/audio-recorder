@@ -2,46 +2,44 @@ const button = document.querySelector(".button");
 const soundClips = document.querySelector(".sound-clips");
 const canvas = document.querySelector(".visualizer");
 
-
-function main() {
-    if (!navigator.mediaDevices.getUserMedia) {
-        alert("MediaDevices.getUserMedia() not supported on your browser!");
-        return;
-    }
-    navigator.mediaDevices.getUserMedia({ audio: true }).then(onSuccess, (err) => {
-        console.log("The following error occured: " + err);
-    });
-}
-
-let mediaRecorder = Object.create(null);
-let chunks = [];
-
-function draw() { }
+let audioRecorder;
 
 function onSuccess(stream) {
-    mediaRecorder = new MediaRecorder(stream);
-    mediaRecorder.ondataavailable = function (e) {
-        chunks.push(e.data);
-    };
-    const audioCtx = new AudioContext();
-    mediaRecorder.onstop = stopRecording;
-    const source = audioCtx.createMediaStreamSource(stream);
+    window.audioRecorder = {}
+    window.audioRecorder.stream = stream;
+    window.audioRecorder.mediaRecorder = new MediaRecorder(window.audioRecorder.stream);
+    window.audioRecorder.chunks = [];
+    window.audioRecorder.audioCtx = new AudioContext();
+    window.audioRecorder.source = window.audioRecorder.audioCtx.createMediaStreamSource(window.audioRecorder.stream);
+    startRecording();
+}
 
-    const analyser = audioCtx.createAnalyser();
+function isRecording() {
+    return window.audioRecorder.mediaRecorder.state == "recording";
+}
+
+function startRecording() {
+    window.audioRecorder.mediaRecorder.ondataavailable = (e) => {
+        window.audioRecorder.chunks.push(e.data);
+    };
+    window.audioRecorder.mediaRecorder.onstop = stopRecording;
+    window.audioRecorder.mediaRecorder.start();
+    button.style.background = "red";
+    button.innerHTML = "Stop";
+
+    const analyser = window.audioRecorder.audioCtx.createAnalyser();
     analyser.fftSize = 2048;
     const bufferLength = analyser.frequencyBinCount;
     const dataArray = new Uint8Array(bufferLength);
-    source.connect(analyser);
+    window.audioRecorder.source.connect(analyser);
 
-    draw = function () {
+    const draw = () => {
         const canvasCtx = canvas.getContext("2d");
 
         const WIDTH = canvas.width;
         const HEIGHT = canvas.height;
 
-        if (mediaRecorder.state == "recording") {
-            requestAnimationFrame(draw);
-        }
+        requestAnimationFrame(draw);
 
         analyser.getByteTimeDomainData(dataArray);
 
@@ -72,22 +70,15 @@ function onSuccess(stream) {
         canvasCtx.lineTo(canvas.width, canvas.height / 2);
         canvasCtx.stroke();
     }
+
+    draw();
 }
 
-function toggleRecording() {
-    if (mediaRecorder.state != "recording") {
-        mediaRecorder.start();
-        button.style.background = "red";
-        button.innerHTML = "Stop";
-        draw();
-        return;
-    }
-    button.innerHTML = "Record";
-    mediaRecorder.stop();
-    button.style.background = "";
-};
-
 function stopRecording() {
+    // window.audioRecorder.mediaRecorder.stop();
+    button.innerHTML = "Record";
+    button.style.background = "";
+
     const defaultClipName = `Untitled (${soundClips.childElementCount})`;
 
     const clipName = prompt(
@@ -104,13 +95,15 @@ function stopRecording() {
     const audio = document.createElement("audio");
     audio.setAttribute("controls", "");
     const audioSource = document.createElement("source");
-    const blob = new Blob(chunks, { type: mediaRecorder.mimeType });
-    chunks = [];
-    audioSource.src = window.URL.createObjectURL(blob);
+    const blob = new Blob(window.audioRecorder.chunks, { type: "audio/mpeg" });
+    window.audioRecorder.chunks = [];
+    const recordedMediaURL = window.URL.createObjectURL(blob);
+    audioSource.src = recordedMediaURL;
     audio.appendChild(audioSource);
     clipContainer.appendChild(audio);
 
     const deleteButton = document.createElement("button");
+    deleteButton.classList.add("audio-button");
     deleteButton.innerHTML = "Delete";
     deleteButton.onclick = function (e) {
         if (confirm(`Are you sure you want to delete ${clipLabel.innerHTML}?`)) {
@@ -120,6 +113,7 @@ function stopRecording() {
     clipContainer.appendChild(deleteButton);
 
     const renameButton = document.createElement("button");
+    renameButton.classList.add("audio-button");
     renameButton.innerHTML = "Rename";
     renameButton.onclick = function () {
         const newClipName = prompt(`Rename ${clipLabel.innerHTML}`);
@@ -129,7 +123,34 @@ function stopRecording() {
     };
     clipContainer.appendChild(renameButton);
 
+    const downloadButton = document.createElement("a");
+    downloadButton.classList.add("audio-button");
+    downloadButton.innerHTML = "Download";
+    downloadButton.onclick = () => {
+        URL.revokeObjectURL(audio);
+    }
+    downloadButton.href = recordedMediaURL;
+    clipContainer.appendChild(downloadButton);
+
     soundClips.appendChild(clipContainer);
+
+    window.audioRecorder.stream.getTracks().forEach(track => {
+        track.stop();
+    })
+    window.audioRecorder.audioCtx.close();
+    window.audioRecorder.source.disconnect();
 };
 
-main();
+if (!navigator.mediaDevices.getUserMedia) {
+    alert("MediaDevices.getUserMedia() not supported on your browser!");
+}
+
+function toggleRecording() {
+    if (!window.audioRecorder || !isRecording()) {
+        navigator.mediaDevices.getUserMedia({ audio: true }).then(onSuccess, () => {
+            alert("Microphone access must be enabled");
+        });
+        return;
+    }
+    window.audioRecorder.mediaRecorder.stop();
+};

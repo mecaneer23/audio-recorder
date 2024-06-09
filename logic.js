@@ -36,27 +36,23 @@ function startRecording() {
     const draw = () => {
         const canvasCtx = canvas.getContext("2d");
 
-        const WIDTH = canvas.width;
-        const HEIGHT = canvas.height;
+        canvasCtx.clearRect(0, 0, canvas.width, canvas.height);
 
         requestAnimationFrame(draw);
 
         analyser.getByteTimeDomainData(dataArray);
 
-        canvasCtx.fillStyle = "rgb(200, 200, 200)";
-        canvasCtx.fillRect(0, 0, WIDTH, HEIGHT);
-
         canvasCtx.lineWidth = 2;
-        canvasCtx.strokeStyle = "rgb(0, 0, 0)";
+        canvasCtx.strokeStyle = "white";
 
         canvasCtx.beginPath();
 
-        let sliceWidth = (WIDTH * 1.0) / bufferLength;
+        let sliceWidth = (canvas.width * 1.0) / bufferLength;
         let x = 0;
 
         for (let i = 0; i < bufferLength; i++) {
             let v = dataArray[i] / 128.0;
-            let y = (v * HEIGHT) / 2;
+            let y = (v * canvas.height) / 2;
 
             if (i === 0) {
                 canvasCtx.moveTo(x, y);

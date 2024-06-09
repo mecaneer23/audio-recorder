@@ -5,7 +5,3 @@ Web-based audio recording app. A fork of [MDN's Web Dictaphone](https://github.c
 ## MDN description
 
 A sample MDN Web Docs app that uses `getUserMedia` and the MediaRecorder API for recording audio snippets, and The Web Audio API for visualizations.
-
-## TODO
-
-- feat: add github corner

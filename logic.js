@@ -75,7 +75,6 @@ function startRecording() {
 }
 
 function stopRecording() {
-    // window.audioRecorder.mediaRecorder.stop();
     button.innerHTML = "Record";
     button.style.background = "";
 

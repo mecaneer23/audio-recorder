@@ -93,6 +93,8 @@ function stopRecording() {
 
     const audio = document.createElement("audio");
     audio.setAttribute("controls", "");
+    audio.setAttribute("preload", "auto");
+    audio.setAttribute("title", clipName);
     const audioSource = document.createElement("source");
     const blob = new Blob(window.audioRecorder.chunks, { type: "audio/mpeg" });
     window.audioRecorder.chunks = [];
@@ -118,6 +120,8 @@ function stopRecording() {
         const newClipName = prompt(`Rename ${clipLabel.innerHTML}`);
         if (newClipName !== null) {
             clipLabel.innerHTML = newClipName;
+            downloadButton.download = newClipName;
+            audio.setAttribute("title", newClipName);
         }
     };
     clipContainer.appendChild(renameButton);
@@ -129,6 +133,7 @@ function stopRecording() {
         URL.revokeObjectURL(audio);
     }
     downloadButton.href = recordedMediaURL;
+    downloadButton.download = clipName;
     clipContainer.appendChild(downloadButton);
 
     soundClips.appendChild(clipContainer);

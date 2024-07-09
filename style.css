@@ -19,6 +19,7 @@ canvas {
     border: none;
     border-radius: 2vh;
     background-color: white;
+    cursor: pointer;
 }
 
 audio {
@@ -35,6 +36,7 @@ audio {
     font-size: large;
     font-family: Arial, Helvetica, sans-serif;
     padding: 1vh;
+    cursor: pointer;
 }
 
 .audio-button+.audio-button {
